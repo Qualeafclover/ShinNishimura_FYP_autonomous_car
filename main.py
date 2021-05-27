@@ -281,7 +281,7 @@ class SelfDriving(tk.Frame):
         train_ds, test_ds = train_test_split(X, y)
 
         trainer = threading.Thread(target=train_model,
-            args=(create_model(), train_ds, test_ds, os.path.join(self.file_dir, MODEL_SAVE)))
+            args=(create_model(), train_ds, test_ds, os.path.join(self.file_dir, MODEL_SAVE), False))
         trainer.start()
         self.loading_4()
 
@@ -330,15 +330,17 @@ class SelfDriving(tk.Frame):
             self.img = image
         image = np.expand_dims(self.img, 0)
 
-        for layer in self.model.layers:
-            image = layer(image)
-            if layer.name == self.layer_reference[self.layer_shown]:
-                output = image.numpy()[0]
-                show_image = []
-                for n in range(output.shape[-1]):
-                    show_image.append(output[..., n]*255)
-                self.img = row_show(np.array(show_image), layer_name=layer.name, **self.look_for[layer.name])
-        result = image.numpy()
+        # for layer in self.model.layers:
+        #     image = layer(image)
+        #     if layer.name == self.layer_reference[self.layer_shown]:
+        #         output = image.numpy()[0]
+        #         show_image = []
+        #         for n in range(output.shape[-1]):
+        #             show_image.append(output[..., n]*255)
+        #         self.img = row_show(np.array(show_image), layer_name=layer.name, **self.look_for[layer.name])
+        # result = image.numpy()
+        result = self.model.predict(image)
+
         steering = result[0][0]
 
         if float(data['speed']) >= self.speed.get():
