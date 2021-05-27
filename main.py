@@ -93,35 +93,35 @@ class SelfDriving(tk.Frame):
                 text='End Simulation',
                 width=30,
                 command=self.kill_sim
-            ).place(relx=0.5, rely=0.1, anchor=tk.CENTER)
+            ).place(relx=0.2, rely=0.1, anchor=tk.CENTER)
         else:
             self.button = tk.Button(
                 self.root.pack(),
                 text='Start Simulation',
                 width=30,
                 command=self.start_sim
-            ).place(relx=0.5, rely=0.1, anchor=tk.CENTER)
+            ).place(relx=0.2, rely=0.1, anchor=tk.CENTER)
 
         self.button = tk.Button(
             self.root.pack(),
             text='Select work file',
             width=30,
             command=self.get_workfile
-        ).place(relx=0.2, rely=0.2, anchor=tk.CENTER)
+        ).place(relx=0.2, rely=0.25, anchor=tk.CENTER)
 
         self.button = tk.Button(
             self.root.pack(),
             text='Reset work file',
             width=30,
             command=self.del_workfile
-        ).place(relx=0.2, rely=0.35, anchor=tk.CENTER)
+        ).place(relx=0.2, rely=0.4, anchor=tk.CENTER)
 
         self.button = tk.Button(
             self.root.pack(),
             text='Load file for training',
             width=30,
             command=self.train_1
-        ).place(relx=0.2, rely=0.65, anchor=tk.CENTER)
+        ).place(relx=0.2, rely=0.7, anchor=tk.CENTER)
 
         if self.model_running:
             self.button = tk.Button(
@@ -150,7 +150,7 @@ class SelfDriving(tk.Frame):
                 text='Run trained model',
                 width=30,
                 command=self.run_model
-            ).place(relx=0.2, rely=0.80, anchor=tk.CENTER)
+            ).place(relx=0.2, rely=0.85, anchor=tk.CENTER)
 
     def layer_next(self):
         if self.layer_shown != (len(self.layer_reference)-1):
@@ -234,40 +234,39 @@ class SelfDriving(tk.Frame):
     def loading_2(self):
         from create_reference_log import index_num, total_index, taken, finished
 
-        self.progress = ttk.Progressbar(
-            self.root.pack(),
-            orient=tk.HORIZONTAL,
-            length=350,
-            mode='determinate',
-            value=index_num+1, maximum=float(total_index)
-        ).place(relx=0.5, rely=0.75, anchor=tk.CENTER)
-
-        self.text = tk.Label(
-            self.root.pack(),
-            text=f'Itering over row: {index_num+1}/{total_index}',
-            bg='grey'
-        ).place(relx=0.075, rely=0.775, anchor=tk.NW)
+        if type(self.master.place_slaves()[1]) == ttk.Progressbar:
+            self.master.place_slaves()[1].value = index_num+1
+        else:
+            self.progress = ttk.Progressbar(
+                self.root.pack(),
+                orient=tk.HORIZONTAL,
+                length=350,
+                mode='determinate',
+                value=index_num+1, maximum=float(total_index)
+            ).place(relx=0.7, rely=0.75, anchor=tk.CENTER)
 
         left = total_index - index_num
         try: est = str(timedelta(seconds=round(taken / index_num * left)))
         except ZeroDivisionError: est = '?:??:??'
 
-        self.text = tk.Label(
-            self.root.pack(),
-            text=f'Time taken: {str(timedelta(seconds=round(taken)))}',
-            bg='grey'
-        ).place(relx=0.075, rely=0.825, anchor=tk.NW)
-
-        self.text = tk.Label(
-            self.root.pack(),
-            text=f'Estimated time left: {est}',
-            bg='grey'
-        ).place(relx=0.075, rely=0.875, anchor=tk.NW)
+        if type(self.master.place_slaves()[1]) == tk.Label:
+            self.master.place_slaves()[1].text = \
+                f'Itering over row: {index_num+1}/{total_index}\n'\
+                f'Time taken: {str(timedelta(seconds=round(taken)))}\n'\
+                f'Estimated time left: {est}'
+        else:
+            self.text = tk.Label(
+                self.root.pack(),
+                text=f'Itering over row: {index_num+1}/{total_index}\n'
+                     f'Time taken: {str(timedelta(seconds=round(taken)))}\n'
+                     f'Estimated time left: {est}',
+                bg='grey'
+            ).place(relx=0.7, rely=0.85, anchor=tk.CENTER)
 
         if finished:
             self.train_3()
         else:
-            self.after(100, self.loading_2)
+            self.after(50, self.loading_2)
 
     def train_3(self):
         self.main_menu()
@@ -277,56 +276,55 @@ class SelfDriving(tk.Frame):
         df = df.drop_duplicates(subset=['wheel_angle'])
         df = df.to_dict(orient='list')
 
-        self.counter = 0
         X = np.array([cv2.imread(n) for n in df['center_dir']])
         y = np.array([df['wheel_angle']])
         train_ds, test_ds = train_test_split(X, y)
 
         trainer = threading.Thread(target=train_model,
-            args=(Model(), train_ds, test_ds, os.path.join(self.file_dir, MODEL_SAVE)))
+            args=(create_model(), train_ds, test_ds, os.path.join(self.file_dir, MODEL_SAVE)))
         trainer.start()
         self.loading_4()
 
     def loading_4(self):
         from model import timer, finished
 
-        self.progress = ttk.Progressbar(
-            self.root.pack(),
-            orient=tk.HORIZONTAL,
-            length=350,
-            mode='determinate',
-            value=sum(timer.finished), maximum=sum(timer.increments)
-        ).place(relx=0.5, rely=0.75, anchor=tk.CENTER)
+        if type(self.master.place_slaves()[1]) == ttk.Progressbar:
+            self.master.place_slaves()[1].value = sum(timer.finished)
+        else:
+            self.progress = ttk.Progressbar(
+                self.root.pack(),
+                orient=tk.HORIZONTAL,
+                length=350,
+                mode='determinate',
+                value=sum(timer.finished), maximum=sum(timer.increments)
+            ).place(relx=0.7, rely=0.75, anchor=tk.CENTER)
 
-        self.text = tk.Label(
-            self.root.pack(),
-            text=f'Performing actions: {sum(timer.finished)}/{sum(timer.increments)}',
-            bg='grey'
-        ).place(relx=0.075, rely=0.775, anchor=tk.NW)
+        if type(self.master.place_slaves()[1]) == tk.Label:
+            self.master.place_slaves()[1].text = \
+                 f'Performing actions: {sum(timer.finished)}/{sum(timer.increments)}\n'\
+                 f'Time taken: {timer.total_time()}\n'\
+                 f'Estimated time left: {timer.time_left()}'
+        else:
+            self.text = tk.Label(
+                self.root.pack(),
+                text=f'Performing actions: {sum(timer.finished)}/{sum(timer.increments)}\n'
+                     f'Time taken: {timer.total_time()}\n'
+                     f'Estimated time left: {timer.time_left()}',
+                bg='grey'
+            ).place(relx=0.7, rely=0.85, anchor=tk.CENTER)
 
-        self.text = tk.Label(
-            self.root.pack(),
-            text=f'Time taken: {timer.total_time()}',
-            bg='grey'
-        ).place(relx=0.075, rely=0.825, anchor=tk.NW)
-
-        self.text = tk.Label(
-            self.root.pack(),
-            text=f'Estimated time left: {timer.time_left()}',
-            bg='grey'
-        ).place(relx=0.075, rely=0.875, anchor=tk.NW)
 
         if finished:
             self.main_menu()
             self.running_tensorflow = False
         else:
-            self.after(100, self.loading_4)
+            self.after(50, self.loading_4)
 
 
     @static_vars(speed_controller=PIController())
     def controller(self, data):
         if (data is None) or (not self.model_running): return 0, 0
-        self.img = base64_to_cvmat(data["image"])
+        image = base64_to_cvmat(data["image"])
 
         if self.layer_reference[self.layer_shown] is None:
             self.img = image
