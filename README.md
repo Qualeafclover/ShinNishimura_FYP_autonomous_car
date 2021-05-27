@@ -1,1 +1,2 @@
-# ShinNishimura_FYP_autonomous_car
+# NYP FYP Autonomous driving vehicle
+# By Shin Nishimura
