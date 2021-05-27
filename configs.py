@@ -37,12 +37,12 @@ SEED            = None
 TEST_PERCENTAGE = 0.0
 
 # Batch, epoch and warmup epoch for model training
-BATCH 	= 16
+BATCH 	= 8
 EPOCHS        = 10
 WARMUP_EPOCHS = 1
 
 # Learning rate for model
-LEARNING_RATE_MAX = 0.0001
+LEARNING_RATE_MAX = 0.0003
 LEARNING_RATE_MIN = LEARNING_RATE_MAX/100
 
 # Tensorboard usage
