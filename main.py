@@ -328,19 +328,19 @@ class SelfDriving(tk.Frame):
 
         if self.layer_reference[self.layer_shown] is None:
             self.img = image
-        image = np.expand_dims(self.img, 0)
 
-        # for layer in self.model.layers:
-        #     image = layer(image)
-        #     if layer.name == self.layer_reference[self.layer_shown]:
-        #         output = image.numpy()[0]
-        #         show_image = []
-        #         for n in range(output.shape[-1]):
-        #             show_image.append(output[..., n]*255)
-        #         self.img = row_show(np.array(show_image), layer_name=layer.name, **self.look_for[layer.name])
-        # result = image.numpy()
-        result = self.model.predict(image)
+        image = np.expand_dims(image, 0)
 
+        for layer in self.model.layers:
+            image = layer(image)
+            if layer.name == self.layer_reference[self.layer_shown]:
+                output = image.numpy()[0]
+                show_image = []
+                for n in range(output.shape[-1]):
+                    show_image.append(output[..., n]*255)
+                self.img = row_show(np.array(show_image), layer_name=layer.name, **self.look_for[layer.name])
+
+        result = image.numpy()
         steering = result[0][0]
 
         if float(data['speed']) >= self.speed.get():
