@@ -25,54 +25,42 @@ def process_img(img: np.ndarray):
 	sv_img = tf.image.rgb_to_hsv(img)[..., 1:3]
 	return sv_img
 
+def model(input_data):
+	output_data = Lambda(process_img,
+		input_shape=(160, 320, 3), output_shape=(83, 179, 2), name='process'
+	)(input_data)
 
-class Model(Model):
-	def __init__(self):
-		super(Model, self).__init__()
-		self.process = Lambda(process_img,
-			input_shape=(160, 320, 3), output_shape=(83, 179, 2), name='process')
+	output_data = Conv2D(24, 5, (2, 2), activation=relu,
+		input_shape=(83, 179, 2), data_format='channels_last', name='conv1a'
+	)(output_data)
+	output_data = Conv2D(24, 3, (1, 1), activation=relu,
+		input_shape=(40, 88, 24), data_format='channels_last', name='conv1b'
+	)(output_data)
+	output_data = MaxPooling2D((3, 3), (2, 2),
+		input_shape=(38, 86, 24), data_format='channels_last', name='pool1c'
+	)(output_data)
 
-		self.conv1a = Conv2D(24, 5, (2, 2), activation=relu, data_format='channels_last',
-			input_shape=(83, 179, 2), name='conv1a')
-		self.conv1b = Conv2D(24, 3, (1, 1), activation=relu, data_format='channels_last',
-			input_shape=(40, 88, 24), name='conv1b')
-		self.pool1c = MaxPooling2D((3, 3), (2, 2), data_format='channels_last',
-			input_shape=(38, 86, 24), name='pool1c')
+	output_data = Conv2D(32, 3, (2, 2), activation=relu,
+		input_shape=(19, 43, 24), data_format='channels_last', name='conv2a'
+	)(output_data)
+	output_data = Conv2D(32, 3, (1, 1), activation=relu,
+		input_shape=(8, 20, 32), data_format='channels_last', name='conv2b'
+	)(output_data)
+	output_data = Conv2D(42, 3, (2, 2), activation=relu,
+		input_shape=(6, 18, 32), data_format='channels_last', name='conv2c'
+	)(output_data)
 
-		self.conv2a = Conv2D(32, 3, (2, 2), activation=relu, data_format='channels_last',
-			input_shape=(19, 43, 24), name='conv2a')
-		self.conv2b = Conv2D(32, 3, (1, 1), activation=relu, data_format='channels_last',
-			input_shape=(8, 20, 32),  name='conv2b')
-		self.conv2c = Conv2D(42, 3, (2, 2), activation=relu, data_format='channels_last',
-			input_shape=(6, 18, 32),  name='conv2c')
+	output_data = Flatten(input_shape=(2, 8, 48), name='flatten')(output_data)
+	output_data = Dense(128, activation=relu, input_shape=(768,), name='dense1')(output_data)
+	output_data = Dense(16,  activation=relu, input_shape=(128,), name='dense2')(output_data)
+	output_data = Dense(1,   activation=relu, input_shape=(16,),  name='dense3')(output_data)
+	return output_data
 
-		self.flatten = Flatten(
-			input_shape=(2, 8, 48), name='flatten')
-
-		self.d1 = Dense(128, activation=relu,
-			input_shape=(768,), name='dense1')
-		self.d2 = Dense(16,  activation=relu,
-			input_shape=(128,), name='dense2')
-		self.d3 = Dense(1, activation=tanh,
-			input_shape=(16,),  name='dense3')
-
-	def call(self, x):
-		x = self.process(x)
-
-		x = self.conv1a(x)
-		x = self.conv1b(x)
-		x = self.pool1c(x)
-
-		x = self.conv2a(x)
-		x = self.conv2b(x)
-		x = self.conv2c(x)
-
-		x = self.flatten(x)
-
-		x = self.d1(x)
-		x = self.d2(x)
-		x = self.d3(x)
-		return x
+def create_model():
+	input_layer = tf.keras.Input((160, 320, 3))
+	output_tensors = model(input_layer)
+	model_output = tf.keras.Model(input_layer, output_tensors)
+	return model_output
 
 
 timer = TrainTimer(1)
@@ -184,3 +172,7 @@ def train_model(model, train_ds, test_ds, save_to, quiet=True) -> Model:
 	model.compile(run_eagerly=True)
 	model.save(save_to)
 	finished = True
+
+if __name__ == '__main__':
+	model = create_model()
+	model.summary()
