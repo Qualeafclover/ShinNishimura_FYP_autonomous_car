@@ -53,7 +53,7 @@ def model(input_data):
 	output_data = Flatten(input_shape=(2, 8, 48), name='flatten')(output_data)
 	output_data = Dense(128, activation=relu, input_shape=(768,), name='dense1')(output_data)
 	output_data = Dense(16,  activation=relu, input_shape=(128,), name='dense2')(output_data)
-	output_data = Dense(1,   activation=relu, input_shape=(16,),  name='dense3')(output_data)
+	output_data = Dense(1,   activation=tanh, input_shape=(16,),  name='dense3')(output_data)
 	return output_data
 
 def create_model():
@@ -108,6 +108,9 @@ def train_model(model, train_ds, test_ds, save_to, quiet=True) -> Model:
 
 		metrics_loss(loss)
 		metrics_steering_accuracy(labels[:, 0], predictions[:, 0])
+		if not quiet:
+			print(labels[:, 0])
+			print(predictions[:, 0])
 
 	def test_step(images, labels):
 		predictions = model(images, training=False)
