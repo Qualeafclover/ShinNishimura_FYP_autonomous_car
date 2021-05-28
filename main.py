@@ -23,6 +23,7 @@ from create_reference_log import create_reference
 from configs import *
 from datetime import timedelta
 
+# Threading the simulator so that it can be debugged easily
 class Application(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -54,11 +55,13 @@ class SelfDriving(tk.Frame):
         self.root = tk.Canvas(self.master, width=self.root_w, height=self.root_h, background='grey',
                               borderwidth=0, highlightthickness=0)
 
+        # Start connection to the udacity simulator, whether it is open or not.
         sim = Simulator(self.controller, show=False)
         sim.init()
         run = threading.Thread(target=sim.run)
         run.start()
 
+        # Which layers to look out for when displaying individual layers.
         self.look_for = {
             'process': {'image_height': 100, 'max_image': 3},
 
@@ -70,14 +73,15 @@ class SelfDriving(tk.Frame):
             'conv2b': {'image_height': 35, 'max_image': 8},
             'conv2c': {'image_height': 20, 'max_image': 10},
 
-            'flatten': {'image_height': 10, 'max_image': 24},
+            # 'flatten': {'image_height': 10, 'max_image': 24},
             'dense1': {'image_height': 25, 'max_image': 8},
             'dense2': {'image_height': 75, 'max_image': 4},
             'dense3': {'image_height': 150, 'max_image': 1},
         }
+
+        # Some other initialization stuff
         self.layer_reference = (None,) + tuple(layer for layer in self.look_for)
         self.layer_shown = 0
-
         self.file_dir = ''
         self.found = False
         self.running_tensorflow = False
@@ -200,11 +204,13 @@ class SelfDriving(tk.Frame):
     def get_workfile(self):
         self.file_dir = filedialog.askdirectory(title='Select file location')
 
+    # Stops the running model.
     def stop_model(self):
         self.model_running = False
         self.running_tensorflow = False
         self.main_menu()
 
+    # Runs the model, prediction not done here though. It is on the threaded part.
     def run_model(self):
         self.speed = tk.DoubleVar()
         self.speed.set(0.0)
@@ -218,6 +224,8 @@ class SelfDriving(tk.Frame):
                 self.place_acceleration()
                 self.place_img()
 
+    # Phase 1 of training, it creates the reference log from the driving log.
+    # If the reference log exists, it skips to Phase 2.
     def train_1(self):
         if not self.running_tensorflow:
             if self.file_dir != '':
@@ -231,6 +239,7 @@ class SelfDriving(tk.Frame):
                         reference.start()
                         self.loading_2()
 
+    # Phase 1 of training, this is basically the progress bar for the reference log creation.
     def loading_2(self):
         from create_reference_log import index_num, total_index, taken, finished
 
@@ -268,6 +277,7 @@ class SelfDriving(tk.Frame):
         else:
             self.after(50, self.loading_2)
 
+    # Phase 2 of training, it... trains the model. Yeah.
     def train_3(self):
         self.main_menu()
 
@@ -285,6 +295,7 @@ class SelfDriving(tk.Frame):
         trainer.start()
         self.loading_4()
 
+    # Phase 2 of training, this is basically the progress bar for the model training.
     def loading_4(self):
         from model import timer, finished
 
@@ -320,7 +331,7 @@ class SelfDriving(tk.Frame):
         else:
             self.after(50, self.loading_4)
 
-
+    # In short, the part that will be looped when the program is connected to the Udacity simulator.
     @static_vars(speed_controller=PIController())
     def controller(self, data):
         if (data is None) or (not self.model_running): return 0, 0
@@ -351,6 +362,7 @@ class SelfDriving(tk.Frame):
 
         return steering, throttle
 
+    # It is what it says, it starts the Udacity simulation.
     def start_sim(self):
         self.found = False
         win32gui.EnumWindows(self.callback, None)
@@ -359,6 +371,7 @@ class SelfDriving(tk.Frame):
             self.found = True
         self.main_menu()
 
+    # It is what it says, it kills the Udacity simulation.
     def kill_sim(self):
         self.found = False
         win32gui.EnumWindows(self.callback, None)
@@ -368,11 +381,13 @@ class SelfDriving(tk.Frame):
         self.main_menu()
 
 
+    # Stuff to find the PID value of the Udacity simulator.
     def get_pid(self):
         for pros in psutil.process_iter(['name']):
             if pros._name == PROCESS_NAME:
                 return pros.pid
 
+    # Stuff to find the PID value of the Udacity simulator.
     def callback(self, hwnd, extra):
         GetWindowText = ctypes.windll.user32.GetWindowTextW
         GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
@@ -384,10 +399,12 @@ class SelfDriving(tk.Frame):
             self.pid = self.get_pid()
             self.found = True
 
+    # Delete all items
     def del_all(self):
         for slave in self.master.place_slaves():
             slave.destroy()
 
+    # Detete last item placed, or under some special circumstances.
     def del_last(self, spl=None, last_num=0):
         if spl is None:
             self.master.place_slaves()[last_num].destroy()
