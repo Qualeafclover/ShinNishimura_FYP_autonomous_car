@@ -23,6 +23,7 @@ from create_reference_log import create_reference
 from configs import *
 from datetime import timedelta
 
+
 # Threading the simulator so that it can be debugged easily
 class Application(threading.Thread):
     def __init__(self):
@@ -30,8 +31,8 @@ class Application(threading.Thread):
         self.start()
 
     def callback(self):
-        os._exit(1)
         self.root.quit()
+        quit()
 
     def run(self):
         self.root = tk.Tk()
@@ -40,6 +41,7 @@ class Application(threading.Thread):
         self.root.geometry('900x450')
         self.root.protocol('WM_DELETE_WINDOW', self.callback)
         self.root.wm_attributes('-transparentcolor', '')
+        self.root.wm_iconbitmap(NYP_ICON_DIR)
         self.root.wm_attributes('-topmost', True)
         self.root.attributes('-alpha', 0.8)
 
@@ -380,9 +382,9 @@ class SelfDriving(tk.Frame):
             self.found = False
         self.main_menu()
 
-
     # Stuff to find the PID value of the Udacity simulator.
-    def get_pid(self):
+    @classmethod
+    def get_pid(cls):
         for pros in psutil.process_iter(['name']):
             if pros._name == PROCESS_NAME:
                 return pros.pid

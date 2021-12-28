@@ -5,13 +5,15 @@ BUFF_VALUE = 'self_driving_car_nanodegree_program'
 # Process name for launching/stopping simulation
 PROCESS_NAME = 'beta_simulator.exe'
 
+NYP_ICON_DIR = 'C:/Users/8051/Desktop/ShinNishimura_FYP_autonomous_car/nyp.ico'
+
 # Driving log name
 RAW_LOG_NAME = 'driving_log.csv'
 # Model name
 MODEL_SAVE = 'model.tf'
 
 # Angle averaging distribution on data
-ANGLE_REDESTRIBTION = 3
+ANGLE_REDISTRIBUTION = 3
 # Driving log reference name
 REFERENCE_NAME = 'reference_log.csv'
 
@@ -19,9 +21,9 @@ REFERENCE_NAME = 'reference_log.csv'
 CAMERA_ANGLE_VARIATION = 2.0 / 25.0
 
 # Image cropping for model input
-CROP_LEFT   = 0.00
-CROP_RIGHT  = 0.00
-CROP_TOP    = 0.35
+CROP_LEFT = 0.00
+CROP_RIGHT = 0.00
+CROP_TOP = 0.35
 CROP_BOTTOM = 0.10
 
 # Image resize for model input
@@ -32,13 +34,13 @@ VALUE_RESCALE_MIN = 0.0
 VALUE_RESCALE_MAX = 1.0
 
 # Seed for model creation
-SEED            = None
+SEED = None
 # Train Test Split, test percentage
 TEST_PERCENTAGE = 0.0
 
 # Batch, epoch and warmup epoch for model training
-BATCH 	= 8
-EPOCHS        = 10
+BATCH = 8
+EPOCHS = 10
 WARMUP_EPOCHS = 1
 
 # Learning rate for model

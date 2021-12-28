@@ -62,8 +62,8 @@ def create_reference(RAW_LOG_DIR, DATA_DIR):
             cv2.imwrite(img, o_img)
             cv2.imwrite(img_flip, flip)
 
-        agp = ANGLE_REDESTRIBTION
-        agm = ANGLE_REDESTRIBTION
+        agp = ANGLE_REDISTRIBUTION
+        agm = ANGLE_REDISTRIBUTION
         center_angles = df['wheel_angle'][((index-agm) if index > agm else 0): ((index+agp) if index < (len(df.index)-agp) else -1)]
         actual_angle = row['wheel_angle']
         max_angle = center_angles.max()
